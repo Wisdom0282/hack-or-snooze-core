@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hack or Snooze</title>
+  <title>Hack or Snooze — Product Design & Engineering</title>
   <style>
     :root {
       --primary: #ff6600;
@@ -17,6 +17,7 @@
       --toast-bg: #1a1a2e;
       --toast-text: #ffffff;
     }
+
     [data-theme="dark"] {
       --bg: #0f1117;
       --surface: #1e222d;
@@ -28,15 +29,17 @@
       --toast-bg: #f0f2f5;
       --toast-text: #0f1117;
     }
+
     * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0;
       padding: 0;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.2s ease, color 0.2s ease;
     }
+
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -48,245 +51,266 @@
       top: 0;
       z-index: 100;
     }
-    .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text); }
-    .logo { background: var(--primary); color: white; font-weight: bold; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
-    .header-right { display: flex; align-items: center; gap: 1rem; }
-    .search-box input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 8px; width: 280px; outline: none; }
-    .btn-primary { background: var(--primary); color: white; border: none; padding: 0.5rem 1.25rem; font-weight: 600; border-radius: 8px; cursor: pointer; }
-    .user-avatar { background: #ffede6; color: var(--primary); border: 1px solid #ffdcd0; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
-    .container { max-width: 900px; margin: 1.5rem auto; padding: 0 1rem; }
-    .subnav { display: flex; gap: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .tab { background: none; border: none; color: var(--muted); font-weight: 600; padding: 0.75rem 0.25rem; cursor: pointer; position: relative; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo {
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 1.1rem;
+    }
+    .brand span { font-weight: 700; font-size: 1.15rem; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-box input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 2.5rem 0.5rem 1rem;
+      border-radius: 8px;
+      width: 280px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus { border-color: var(--primary); }
+    .search-shortcut {
+      position: absolute;
+      right: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+    .icon-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .icon-btn:hover { background: var(--border); }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .user-avatar {
+      background: #ffede6;
+      color: var(--primary);
+      border: 1px solid #ffdcd0;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+    .subnav {
+      display: flex;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .tab {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.75rem 0.25rem;
+      cursor: pointer;
+      position: relative;
+    }
     .tab.active { color: var(--primary); }
-    .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--primary); }
-    .banner { background: var(--banner-bg); border: 1px solid var(--border); padding: 1.5rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .story-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem 1.25rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-    .story-title { font-weight: 600; color: var(--text); text-decoration: none; }
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary);
+    }
+    .tab-count {
+      background: var(--border);
+      color: var(--text);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      margin-left: 4px;
+    }
+    .tab.active .tab-count {
+      background: #ffe6dc;
+      color: var(--primary);
+    }
+
+    .banner {
+      background: var(--banner-bg);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .banner-text h3 { margin: 0 0 4px 0; font-size: 1.1rem; }
+    .banner-text p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .reset-link {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+    .reset-link:hover { color: var(--primary); }
+
+    .story-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: border-color 0.2s;
+    }
+    .story-card:hover { border-color: #d0d7de; }
+    .story-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      overflow: hidden;
+    }
+    .author-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .story-content { overflow: hidden; }
+    .story-title {
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 1.05rem;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .story-title:hover { color: var(--primary); }
-    .story-meta { font-size: 0.85rem; color: var(--muted); margin-top: 4px; display: flex; gap: 6px; }
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
-    .modal { background: var(--surface); border: 1px solid var(--border); width: 100%; max-width: 440px; border-radius: 16px; padding: 2rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group input { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); outline: none; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
-    .hidden { display: none !important; }
-    #toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 2000; }
-    .toast { background: var(--toast-bg); color: var(--toast-text); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; }
-  </style>
-</head>
-<body>
-
-  <header>
-    <a href="#" class="brand" id="home-link">
-      <div class="logo">H</div>
-      <span>Hack or Snooze</span>
-    </a>
-    <div class="header-right">
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="Search stories, authors, sites" />
-      </div>
-      <button class="btn-primary" id="submit-story-btn">Submit</button>
-      <div id="auth-nav-container"></div>
-    </div>
-  </header>
-
-  <div class="container">
-    <div class="banner" id="auth-banner">
-      <div>
-        <h3>Read free. Sign in to save and post.</h3>
-        <p style="margin:0; color:var(--muted); font-size:0.9rem;">Star stories to keep them, and share links you think the community should see.</p>
-      </div>
-      <button class="btn-primary" id="banner-signup-btn">Create account</button>
-    </div>
-
-    <div class="subnav">
-      <button class="tab active" data-tab="newest">Newest <span id="count-newest">0</span></button>
-      <button class="tab" data-tab="favorites">Favorites <span id="count-favorites">0</span></button>
-      <button class="tab" data-tab="my-stories">My stories <span id="count-mystories">0</span></button>
-    </div>
-
-    <div id="story-feed">Loading stories...</div>
-  </div>
-
-  <!-- Auth Modal -->
-  <div class="modal-backdrop" id="auth-modal">
-    <div class="modal">
-      <h2 id="auth-modal-title">Welcome back</h2>
-      <form id="auth-form">
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" id="auth-username" required placeholder="hacker" />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="auth-password" required placeholder="••••••••" />
-        </div>
-        <div class="form-group hidden" id="group-name">
-          <label>Full Name</label>
-          <input type="text" id="auth-name" placeholder="Wisdom Godwin" />
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-primary" style="background:none; color:var(--text); border:1px solid var(--border);" id="auth-cancel-btn">Cancel</button>
-          <button type="submit" class="btn-primary" id="auth-submit-btn">Log in</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Submit Modal -->
-  <div class="modal-backdrop" id="submit-modal">
-    <div class="modal">
-      <h2>Submit a story</h2>
-      <form id="submit-form">
-        <div class="form-group"><label>Title</label><input type="text" id="submit-title" required /></div>
-        <div class="form-group"><label>URL</label><input type="url" id="submit-url" required /></div>
-        <div class="form-group"><label>Author</label><input type="text" id="submit-author" required /></div>
-        <div class="modal-actions">
-          <button type="button" class="btn-primary" style="background:none; color:var(--text); border:1px solid var(--border);" id="submit-cancel-btn">Cancel</button>
-          <button type="submit" class="btn-primary">Post story</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="toast-container"></div>
-
-  <script type="module">
-    import { createMockApi } from "./src/api.js";
-    import { safeBrowserStorage } from "./src/storage.js";
-    import { StoryList, User } from "./src/models.js";
-
-    const storage = safeBrowserStorage();
-    const api = createMockApi({ storage });
-
-    let currentUser = null;
-    let storyList = null;
-    let activeTab = "newest";
-    let searchQuery = "";
-
-    function showToast(message) {
-      const container = document.getElementById("toast-container");
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.textContent = message;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+    .story-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
-
-    async function init() {
-      storyList = await StoryList.load(api);
-      currentUser = await User.restore(api, storage);
-      setupListeners();
-      render();
+    .domain-tag {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.8rem;
     }
-
-    function render() {
-      document.getElementById("auth-banner").classList.toggle("hidden", currentUser);
-      
-      const authNav = document.getElementById("auth-nav-container");
-      if (currentUser) {
-        authNav.innerHTML = `<div class="user-avatar">${currentUser.username[0].toUpperCase()}</div>`;
-        authNav.querySelector(".user-avatar").onclick = async () => {
-          await currentUser.logout(storage);
-          currentUser = null;
-          showToast("Logged out");
-          render();
-        };
-      } else {
-        authNav.innerHTML = `<button class="btn-primary" style="background:none; color:var(--text); border:1px solid var(--border);" id="login-open-btn">Log in</button>`;
-        document.getElementById("login-open-btn").onclick = () => document.getElementById("auth-modal").classList.add("active");
-      }
-
-      let stories = storyList.stories;
-      if (activeTab === "favorites" && currentUser) stories = stories.filter(s => currentUser.isFavorite(s.storyId));
-      if (activeTab === "my-stories" && currentUser) stories = stories.filter(s => s.username === currentUser.username);
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        stories = stories.filter(s => s.title.toLowerCase().includes(q) || s.author.toLowerCase().includes(q));
-      }
-
-      document.getElementById("count-newest").textContent = storyList.stories.length;
-      document.getElementById("count-favorites").textContent = currentUser ? storyList.stories.filter(s => currentUser.isFavorite(s.storyId)).length : 0;
-      document.getElementById("count-mystories").textContent = currentUser ? storyList.stories.filter(s => s.username === currentUser.username).length : 0;
-
-      const feed = document.getElementById("story-feed");
-      feed.innerHTML = stories.length === 0 ? `<div style="text-align:center; padding:2rem; color:var(--muted);">No stories found.</div>` : stories.map(s => {
-        const isFav = currentUser ? currentUser.isFavorite(s.storyId) : false;
-        const isOwner = currentUser && s.username === currentUser.username;
-        return `
-          <div class="story-card">
-            <div>
-              <a class="story-title" href="${s.url}" target="_blank">${s.title}</a>
-              <div class="story-meta"><span>${s.getHostName()}</span> • <span>by ${s.author}</span> • <span>${s.timeAgo()}</span></div>
-            </div>
-            <div>
-              ${currentUser ? `<button class="btn-primary" style="padding:4px 8px;" data-fav="${s.storyId}">${isFav ? "★" : "☆"}</button>` : ""}
-              ${isOwner ? `<button class="btn-primary" style="background:#d93838; padding:4px 8px;" data-del="${s.storyId}">Delete</button>` : ""}
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      feed.querySelectorAll("[data-fav]").forEach(b => b.onclick = async () => {
-        await currentUser.toggleFavorite(b.dataset.fav);
-        render();
-      });
-      feed.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
-        await storyList.remove(currentUser, b.dataset.del);
-        render();
-      });
+    .yours-badge {
+      background: #e6f4ea;
+      color: #137333;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
+    [data-theme="dark"] .yours-badge { background: #132b1c; color: #81c995; }
 
-    function setupListeners() {
-      document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-        document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-        t.classList.add("active");
-        activeTab = t.dataset.tab;
-        render();
-      });
-      document.getElementById("search-input").oninput = e => { searchQuery = e.target.value; render(); };
-      document.getElementById("banner-signup-btn").onclick = () => {
-        document.getElementById("group-name").classList.remove("hidden");
-        document.getElementById("auth-modal").classList.add("active");
-      };
-      document.getElementById("submit-story-btn").onclick = () => {
-        if (!currentUser) { document.getElementById("auth-modal").classList.add("active"); return; }
-        document.getElementById("submit-modal").classList.add("active");
-      };
-      document.getElementById("auth-cancel-btn").onclick = () => document.getElementById("auth-modal").classList.remove("active");
-      document.getElementById("submit-cancel-btn").onclick = () => document.getElementById("submit-modal").classList.remove("active");
-
-      document.getElementById("auth-form").onsubmit = async e => {
-        e.preventDefault();
-        const u = document.getElementById("auth-username").value;
-        const p = document.getElementById("auth-password").value;
-        const n = document.getElementById("auth-name").value;
-        try {
-          currentUser = n ? await User.signup(api, storage, u, p, n) : await User.login(api, storage, u, p);
-          document.getElementById("auth-modal").classList.remove("active");
-          showToast("Successfully authenticated");
-          render();
-        } catch (err) { showToast(err.message); }
-      };
-
-      document.getElementById("submit-form").onsubmit = async e => {
-        e.preventDefault();
-        try {
-          await storyList.add(currentUser, {
-            title: document.getElementById("submit-title").value,
-            url: document.getElementById("submit-url").value,
-            author: document.getElementById("submit-author").value
-          });
-          document.getElementById("submit-modal").classList.remove("active");
-          document.getElementById("submit-form").reset();
-          showToast("Story posted");
-          render();
-        } catch (err) { showToast(err.message); }
-      };
+    .story-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
     }
+    .star-btn, .action-btn {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 0.85rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .star-btn { font-size: 1.25rem; border: none; padding: 4px; background: none; }
+    .action-btn:hover { background: var(--bg); }
+    .action-btn.danger { color: #d93838; border-color: #ffd8d8; background: #fff8f8; font-weight: 600; }
+    .action-btn.danger:hover { background: #fee7e7; }
 
-    init();
-  </script>
-</body>
-</html>
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0,
