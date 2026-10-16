@@ -40,7 +40,6 @@
       transition: background 0.2s, color 0.2s;
     }
 
-    /* Header */
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -145,7 +144,6 @@
       cursor: pointer;
     }
 
-    /* Main Container & Navigation Tabs */
     .container {
       max-width: 900px;
       margin: 1.5rem auto;
@@ -190,7 +188,6 @@
       color: var(--primary);
     }
 
-    /* Banner */
     .banner {
       background: var(--banner-bg);
       border: 1px solid var(--border);
@@ -222,7 +219,6 @@
     }
     .reset-link:hover { color: var(--primary); }
 
-    /* Story Cards */
     .story-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -233,9 +229,7 @@
       justify-content: space-between;
       margin-bottom: 0.75rem;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-      transition: transform 0.1s;
     }
-    .story-card:hover { border-color: #d0d7de; }
     .story-left {
       display: flex;
       align-items: center;
@@ -313,7 +307,6 @@
     .action-btn.danger { color: #d93838; border-color: #ffd8d8; }
     .action-btn.danger:hover { background: #fff1f1; }
 
-    /* Modals / Dialogs */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -391,7 +384,6 @@
       cursor: pointer;
     }
 
-    /* Toasts */
     #toast-container {
       position: fixed;
       bottom: 24px;
@@ -425,7 +417,6 @@
 </head>
 <body>
 
-  <!-- Header -->
   <header>
     <a href="#" class="brand" id="home-link">
       <div class="logo">H</div>
@@ -438,14 +429,11 @@
       </div>
       <button class="icon-btn" id="theme-toggle" title="Toggle theme">🌓</button>
       <button class="btn-primary" id="submit-story-btn">Submit</button>
-      <div id="auth-nav-container">
-        <!-- Injected dynamically based on auth state -->
-      </div>
+      <div id="auth-nav-container"></div>
     </div>
   </header>
 
   <div class="container">
-    <!-- Unauthenticated Banner -->
     <div class="banner" id="auth-banner">
       <div class="banner-text">
         <h3>Read free. Sign in to save and post.</h3>
@@ -454,7 +442,6 @@
       <button class="btn-primary" id="banner-signup-btn">Create account</button>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="subnav">
       <button class="tab active" data-tab="newest">Newest <span class="tab-count" id="count-newest">0</span></button>
       <button class="tab" data-tab="favorites">Favorites <span class="tab-count" id="count-favorites">0</span></button>
@@ -466,7 +453,6 @@
       <button class="reset-link" id="reset-data-btn">Reset demo data</button>
     </div>
 
-    <!-- Feed -->
     <div id="story-feed">Loading stories...</div>
   </div>
 
@@ -531,10 +517,9 @@
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
   <div id="toast-container"></div>
 
-  <!-- Main Integration Script -->
+  <!-- Fully Integrated ES Module Script connecting models and storage -->
   <script type="module">
     import { createMockApi } from "./src/api.js";
     import { safeBrowserStorage } from "./src/storage.js";
@@ -549,7 +534,6 @@
     let searchQuery = "";
     let deleteConfirmId = null;
 
-    // Avatar color generator helper
     const avatarColors = ["#e056fd", "#686de0", "#30336b", "#009432", "#10ac84", "#e74c3c", "#f39c12", "#2980b9"];
     function getAvatarColor(str = "") {
       let hash = 0;
@@ -567,32 +551,29 @@
     }
 
     async function init() {
-      storyList = await StoryList.load(api);
-      currentUser = await User.restore(api, storage);
-      
-      if (currentUser) {
-        showToast("Welcome back, hacker");
-      }
+      try {
+        storyList = await StoryList.load(api);
+        currentUser = await User.restore(api, storage);
+        
+        if (currentUser) {
+          showToast("Welcome back, hacker");
+        }
 
-      setupEventListeners();
-      render();
+        setupEventListeners();
+        render();
+      } catch (err) {
+        showToast("Initialization error: " + err.message);
+      }
     }
 
     function render() {
-      // Theme Check
-      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-      
-      // Auth Banner
       const banner = document.getElementById("auth-banner");
       if (currentUser) banner.classList.add("hidden");
       else banner.classList.remove("hidden");
 
-      // Auth Nav Header
       const authNav = document.getElementById("auth-nav-container");
       if (currentUser) {
-        authNav.innerHTML = `
-          <div class="user-avatar" title="${currentUser.username}">${currentUser.username[0].toUpperCase()}</div>
-        `;
+        authNav.innerHTML = `<div class="user-avatar" title="${currentUser.username}">${currentUser.username[0].toUpperCase()}</div>`;
         authNav.querySelector(".user-avatar").addEventListener("click", async () => {
           await currentUser.logout(storage);
           currentUser = null;
@@ -604,4 +585,132 @@
         document.getElementById("nav-login-btn").addEventListener("click", () => openAuthModal("login"));
       }
 
-      // Filter stories based on tab
+      let stories = storyList.stories;
+
+      if (activeTab === "favorites" && currentUser) {
+        stories = stories.filter(s => currentUser.isFavorite(s.storyId));
+      } else if (activeTab === "my-stories" && currentUser) {
+        stories = stories.filter(s => s.username === currentUser.username);
+      }
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        stories = stories.filter(s => 
+          s.title.toLowerCase().includes(q) || 
+          s.author.toLowerCase().includes(q) || 
+          s.getHostName().toLowerCase().includes(q)
+        );
+      }
+
+      document.getElementById("count-newest").textContent = storyList.stories.length;
+      document.getElementById("count-favorites").textContent = currentUser ? storyList.stories.filter(s => currentUser.isFavorite(s.storyId)).length : 0;
+      document.getElementById("count-mystories").textContent = currentUser ? storyList.stories.filter(s => s.username === currentUser.username).length : 0;
+      document.getElementById("story-count-label").textContent = `${stories.length} ${stories.length === 1 ? 'story' : 'stories'}`;
+
+      const feed = document.getElementById("story-feed");
+      if (stories.length === 0) {
+        feed.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--muted);">No stories found.</div>`;
+        return;
+      }
+
+      feed.innerHTML = stories.map(s => {
+        const isFav = currentUser ? currentUser.isFavorite(s.storyId) : false;
+        const isOwner = currentUser && s.username === currentUser.username;
+        const bgCol = getAvatarColor(s.author || s.title);
+        const isConfirmingDelete = deleteConfirmId === s.storyId;
+
+        return `
+          <div class="story-card">
+            <div class="story-left">
+              <div class="author-badge" style="background: ${bgCol};">${s.author ? s.author[0].toUpperCase() : "H"}</div>
+              <div class="story-content">
+                <a class="story-title" href="${s.url}" target="_blank">${s.title}</a>
+                <div class="story-meta">
+                  <span class="domain-tag">${s.getHostName()}</span>
+                  <span>by ${s.author}</span>
+                  <span>•</span>
+                  <span>${s.timeAgo()}</span>
+                  ${isOwner ? `<span class="yours-badge">yours</span>` : ""}
+                </div>
+              </div>
+            </div>
+            <div class="story-right">
+              ${currentUser ? `
+                <button class="star-btn" data-id="${s.storyId}" title="Favorite">
+                  ${isFav ? "★" : "☆"}
+                </button>
+              ` : ""}
+              ${isOwner ? `
+                <button class="action-btn ${isConfirmingDelete ? 'danger' : ''}" data-delete-id="${s.storyId}">
+                  ${isConfirmingDelete ? "Tap to confirm" : "Delete"}
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      feed.querySelectorAll(".star-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          try {
+            const added = await currentUser.toggleFavorite(btn.dataset.id);
+            showToast(added ? "Saved to favorites" : "Removed from favorites");
+            render();
+          } catch (err) {
+            showToast(err.message);
+          }
+        });
+      });
+
+      feed.querySelectorAll("[data-delete-id]").forEach(btn => {
+        const id = btn.dataset.deleteId;
+        btn.addEventListener("click", async () => {
+          if (deleteConfirmId !== id) {
+            deleteConfirmId = id;
+            render();
+            setTimeout(() => {
+              if (deleteConfirmId === id) {
+                deleteConfirmId = null;
+                render();
+              }
+            }, 4000);
+          } else {
+            try {
+              await storyList.remove(currentUser, id);
+              deleteConfirmId = null;
+              showToast("Story deleted");
+              render();
+            } catch (err) {
+              showToast(err.message);
+            }
+          }
+        });
+      });
+    }
+
+    let isSignupMode = false;
+    function openAuthModal(mode = "login") {
+      isSignupMode = (mode === "signup");
+      document.getElementById("auth-modal-title").textContent = isSignupMode ? "Create an account" : "Welcome back";
+      document.getElementById("auth-modal-desc").textContent = isSignupMode ? "Sign up to post stories and curate favorites." : "Log in to save favorites and post stories.";
+      document.getElementById("tab-login-mode").classList.toggle("active", !isSignupMode);
+      document.getElementById("tab-signup-mode").classList.toggle("active", isSignupMode);
+      document.getElementById("group-name").classList.toggle("hidden", !isSignupMode);
+      document.getElementById("auth-submit-btn").textContent = isSignupMode ? "Sign up" : "Log in";
+      document.getElementById("demo-credentials-hint").style.display = isSignupMode ? "none" : "block";
+      document.getElementById("auth-modal").classList.add("active");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("auth-modal").classList.remove("active");
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          activeTab = tab.dataset.tab;
+          render();
+        });
+      });
