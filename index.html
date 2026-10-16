@@ -313,4 +313,540 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0,
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      transform: translateY(10px);
+      transition: transform 0.2s;
+    }
+    .modal-backdrop.active .modal { transform: translateY(0); }
+    .modal h2 { margin-top: 0; font-size: 1.35rem; }
+    .modal p { color: var(--muted); font-size: 0.9rem; }
+    
+    .modal-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+    .modal-tab {
+      background: none;
+      border: none;
+      padding: 8px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .modal-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .form-group input:focus { border-color: var(--primary); }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .btn-secondary {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: var(--bg); }
+
+    /* Toasts */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      animation: fadeInOut 3s forwards;
+      pointer-events: auto;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(10px); }
+      15% { opacity: 1; transform: translateY(0); }
+      85% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <a href="#" class="brand" id="home-link">
+      <div class="logo">H</div>
+      <span>Hack or Snooze</span>
+    </a>
+    <div class="header-right">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search stories, authors, sites" />
+        <span class="search-shortcut">/</span>
+      </div>
+      <button class="icon-btn" id="theme-toggle" title="Toggle theme">🌓</button>
+      <button class="btn-primary" id="submit-story-btn">Submit</button>
+      <div id="auth-nav-container"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Unauthenticated Banner -->
+    <div class="banner" id="auth-banner">
+      <div class="banner-text">
+        <h3>Read free. Sign in to save and post.</h3>
+        <p>Star stories to keep them, and share links you think the community should see.</p>
+      </div>
+      <button class="btn-primary" id="banner-signup-btn">Create account</button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="subnav">
+      <button class="tab active" data-tab="newest">Newest <span class="tab-count" id="count-newest">0</span></button>
+      <button class="tab" data-tab="favorites">Favorites <span class="tab-count" id="count-favorites">0</span></button>
+      <button class="tab" data-tab="my-stories">My stories <span class="tab-count" id="count-mystories">0</span></button>
+    </div>
+
+    <div class="stats-bar">
+      <span id="story-count-label">0 stories</span>
+      <button class="reset-link" id="reset-data-btn">Reset demo data</button>
+    </div>
+
+    <!-- Story Feed -->
+    <div id="story-feed">Loading stories...</div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="modal-backdrop" id="auth-modal">
+    <div class="modal">
+      <h2 id="auth-modal-title">Welcome back</h2>
+      <p id="auth-modal-desc">Log in to save favorites and post stories.</p>
+      
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login-mode">Log in</button>
+        <button class="modal-tab" id="tab-signup-mode">Sign up</button>
+      </div>
+
+      <form id="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="auth-username" required placeholder="hacker" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="auth-password" required placeholder="••••••••" />
+        </div>
+        <div class="form-group hidden" id="group-name">
+          <label>Full Name</label>
+          <input type="text" id="auth-name" placeholder="Wisdom Godwin" />
+        </div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;" id="demo-credentials-hint">
+          Demo account: hacker / password
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="auth-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary" id="auth-submit-btn">Log in</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Submit Story Modal -->
+  <div class="modal-backdrop" id="submit-modal">
+    <div class="modal">
+      <h2>Submit a story</h2>
+      <p>Share a link worth reading.</p>
+      <form id="submit-form">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="submit-title" required placeholder="Designing resilient front-end state" />
+        </div>
+        <div class="form-group">
+          <label>URL</label>
+          <input type="url" id="submit-url" required placeholder="https://example.com/state" />
+        </div>
+        <div class="form-group">
+          <label>Author</label>
+          <input type="text" id="submit-author" required placeholder="Wisdom Godwin" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="submit-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary">Post story</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Integrated Application Logic Script with Screenshot Seed Data -->
+  <script type="module">
+    import { createMockApi } from "./src/api.js";
+    import { safeBrowserStorage } from "./src/storage.js";
+    import { StoryList, User } from "./src/models.js";
+
+    const storage = safeBrowserStorage();
+    const api = createMockApi({ storage });
+
+    // Seed preset stories from case study screenshots
+    const SCREENSHOT_STORIES = [
+      { title: "Designing resilient front-end state with plain classes", author: "Wisdom Godwin", url: "https://example.com/state", username: "hacker" },
+      { title: "A guide to event delegation in the DOM", author: "MDN", url: "https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener", username: "hacker" },
+      { title: "Understanding async/await by example", author: "Ilya Kantor", url: "https://javascript.info/async-await", username: "hacker" },
+      { title: "Why every developer should learn Git properly", author: "Scott Chacon", url: "https://git-scm.com/book/en/v2", username: "scott" },
+      { title: "Big O notation, explained without the math fear", author: "freeCodeCamp", url: "https://freecodecamp.org/news/big-o-notation", username: "fcc" },
+      { title: "REST API design: lessons from production", author: "Lokesh Gupta", url: "https://restfulapi.net/resource-naming/", username: "lokesh" },
+      { title: "Accessible forms that people actually finish", author: "web.dev", url: "https://web.dev/articles/accessible-forms", username: "webdev" }
+    ];
+
+    async function seedInitialDataIfNeeded() {
+      const dbKey = "hos:db";
+      if (!storage.getItem(dbKey)) {
+        try {
+          await api.signup("hacker", "password", "Hacker");
+          const loginRes = await api.login("hacker", "password");
+          const token = loginRes.token;
+
+          for (const s of SCREENSHOT_STORIES) {
+            await api.addStory(token, s);
+          }
+        } catch (e) {
+          console.error("Seeding error:", e);
+        }
+      }
+    }
+
+    let currentUser = null;
+    let storyList = null;
+    let activeTab = "newest";
+    let searchQuery = "";
+    let deleteConfirmId = null;
+
+    const avatarColors = ["#e056fd", "#686de0", "#30336b", "#009432", "#10ac84", "#e74c3c", "#f39c12", "#2980b9"];
+    function getAvatarColor(str = "") {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return avatarColors[Math.abs(hash) % avatarColors.length];
+    }
+
+    function showToast(message) {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function init() {
+      try {
+        await seedInitialDataIfNeeded();
+        storyList = await StoryList.load(api);
+        currentUser = await User.restore(api, storage);
+        
+        if (currentUser) {
+          showToast("Welcome back, hacker");
+        }
+
+        setupEventListeners();
+        render();
+      } catch (err) {
+        showToast("Initialization error: " + err.message);
+      }
+    }
+
+    function render() {
+      const banner = document.getElementById("auth-banner");
+      if (currentUser) banner.classList.add("hidden");
+      else banner.classList.remove("hidden");
+
+      const authNav = document.getElementById("auth-nav-container");
+      if (currentUser) {
+        authNav.innerHTML = `<div class="user-avatar" title="Logged in as ${currentUser.username}">${currentUser.username[0].toUpperCase()}</div>`;
+        authNav.querySelector(".user-avatar").onclick = async () => {
+          await currentUser.logout(storage);
+          currentUser = null;
+          showToast("Logged out successfully");
+          render();
+        };
+      } else {
+        authNav.innerHTML = `<button class="btn-primary" style="background:none; color:var(--text); border:1px solid var(--border);">Log in</button>`;
+        authNav.querySelector("button").onclick = () => openAuthModal("login");
+      }
+
+      let stories = storyList.stories;
+
+      if (activeTab === "favorites" && currentUser) {
+        stories = stories.filter(s => currentUser.isFavorite(s.storyId));
+      } else if (activeTab === "my-stories" && currentUser) {
+        stories = stories.filter(s => s.username === currentUser.username);
+      }
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        stories = stories.filter(s => 
+          s.title.toLowerCase().includes(q) || 
+          s.author.toLowerCase().includes(q) || 
+          s.getHostName().toLowerCase().includes(q)
+        );
+      }
+
+      document.getElementById("count-newest").textContent = storyList.stories.length;
+      document.getElementById("count-favorites").textContent = currentUser ? storyList.stories.filter(s => currentUser.isFavorite(s.storyId)).length : 0;
+      document.getElementById("count-mystories").textContent = currentUser ? storyList.stories.filter(s => s.username === currentUser.username).length : 0;
+      document.getElementById("story-count-label").textContent = `${stories.length} ${stories.length === 1 ? 'story' : 'stories'}`;
+
+      const feed = document.getElementById("story-feed");
+      if (stories.length === 0) {
+        feed.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--muted);">No stories found.</div>`;
+        return;
+      }
+
+      feed.innerHTML = stories.map(s => {
+        const isFav = currentUser ? currentUser.isFavorite(s.storyId) : false;
+        const isOwner = currentUser && s.username === currentUser.username;
+        const initial = s.author ? s.author[0].toUpperCase() : "H";
+        const bgCol = getAvatarColor(s.author || s.title);
+        const isConfirmingDelete = deleteConfirmId === s.storyId;
+
+        return `
+          <div class="story-card">
+            <div class="story-left">
+              <div class="author-badge" style="background: ${bgCol};">${initial}</div>
+              <div class="story-content">
+                <a class="story-title" href="${s.url}" target="_blank">${s.title}</a>
+                <div class="story-meta">
+                  <span class="domain-tag">${s.getHostName()}</span>
+                  <span>by ${s.author}</span>
+                  <span>•</span>
+                  <span>${s.timeAgo()}</span>
+                  ${isOwner ? `<span class="yours-badge">yours</span>` : ""}
+                </div>
+              </div>
+            </div>
+            <div class="story-right">
+              ${currentUser ? `
+                <button class="star-btn" data-id="${s.storyId}" title="Toggle Favorite">
+                  ${isFav ? "★" : "☆"}
+                </button>
+              ` : ""}
+              ${isOwner ? `
+                <button class="action-btn ${isConfirmingDelete ? 'danger' : ''}" data-delete-id="${s.storyId}">
+                  ${isConfirmingDelete ? "Tap to confirm" : "Delete"}
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Bind Favorite Buttons
+      feed.querySelectorAll(".star-btn").forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            const added = await currentUser.toggleFavorite(btn.dataset.id);
+            showToast(added ? "Saved to favorites" : "Removed from favorites");
+            render();
+          } catch (err) {
+            showToast(err.message);
+          }
+        };
+      });
+
+      // Bind Delete Buttons with confirmation
+      feed.querySelectorAll("[data-delete-id]").forEach(btn => {
+        const id = btn.dataset.deleteId;
+        btn.onclick = async () => {
+          if (deleteConfirmId !== id) {
+            deleteConfirmId = id;
+            render();
+            setTimeout(() => {
+              if (deleteConfirmId === id) {
+                deleteConfirmId = null;
+                render();
+              }
+            }, 4000);
+          } else {
+            try {
+              await storyList.remove(currentUser, id);
+              deleteConfirmId = null;
+              showToast("Story deleted");
+              render();
+            } catch (err) {
+              showToast(err.message);
+            }
+          }
+        };
+      });
+    }
+
+    let isSignupMode = false;
+    function openAuthModal(mode = "login") {
+      isSignupMode = (mode === "signup");
+      document.getElementById("auth-modal-title").textContent = isSignupMode ? "Create an account" : "Welcome back";
+      document.getElementById("auth-modal-desc").textContent = isSignupMode ? "Sign up to post stories and curate favorites." : "Log in to save favorites and post stories.";
+      document.getElementById("tab-login-mode").classList.toggle("active", !isSignupMode);
+      document.getElementById("tab-signup-mode").classList.toggle("active", isSignupMode);
+      document.getElementById("group-name").classList.toggle("hidden", !isSignupMode);
+      document.getElementById("auth-submit-btn").textContent = isSignupMode ? "Sign up" : "Log in";
+      document.getElementById("demo-credentials-hint").style.display = isSignupMode ? "none" : "block";
+      document.getElementById("auth-modal").classList.add("active");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("auth-modal").classList.remove("active");
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.onclick = () => {
+          document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          activeTab = tab.dataset.tab;
+          render();
+        };
+      });
+
+      const searchInput = document.getElementById("search-input");
+      searchInput.oninput = (e) => {
+        searchQuery = e.target.value;
+        render();
+      };
+
+      window.onkeydown = (e) => {
+        if (e.key === "/" && document.activeElement !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      };
+
+      document.getElementById("theme-toggle").onclick = () => {
+        const html = document.documentElement;
+        const current = html.getAttribute("data-theme");
+        html.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+      };
+
+      document.getElementById("banner-signup-btn").onclick = () => openAuthModal("signup");
+
+      document.getElementById("submit-story-btn").onclick = () => {
+        if (!currentUser) {
+          showToast("Please log in to submit a story.");
+          openAuthModal("login");
+          return;
+        }
+        document.getElementById("submit-modal").classList.add("active");
+      };
+
+      document.getElementById("submit-cancel-btn").onclick = () => {
+        document.getElementById("submit-modal").classList.remove("active");
+      };
+
+      document.getElementById("submit-form").onsubmit = async (e) => {
+        e.preventDefault();
+        const title = document.getElementById("submit-title").value;
+        const url = document.getElementById("submit-url").value;
+        const author = document.getElementById("submit-author").value;
+
+        try {
+          await storyList.add(currentUser, { title, url, author });
+          document.getElementById("submit-modal").classList.remove("active");
+          document.getElementById("submit-form").reset();
+          showToast("Story posted");
+          render();
+        } catch (err) {
+          showToast(err.message);
+        }
+      };
+
+      document.getElementById("tab-login-mode").onclick = () => openAuthModal("login");
+      document.getElementById("tab-signup-mode").onclick = () => openAuthModal("signup");
+      document.getElementById("auth-cancel-btn").onclick = closeAuthModal;
+
+      document.getElementById("auth-form").onsubmit = async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("auth-username").value;
+        const password = document.getElementById("auth-password").value;
+        const name = document.getElementById("auth-name").value;
+
+        try {
+          if (isSignupMode) {
+            currentUser = await User.signup(api, storage, username, password, name || username);
+            showToast("Account created successfully");
+          } else {
+            currentUser = await User.login(api, storage, username, password);
+            showToast("Welcome back, hacker");
+          }
+          closeAuthModal();
+          render();
+        } catch (err) {
+          showToast(err.message);
+        }
+      };
+
+      document.getElementById("reset-data-btn").onclick = () => {
+        storage.removeItem("hos:db");
+        storage.removeItem("hos:session");
+        window.location.reload();
+      };
+
+      document.getElementById("home-link").onclick = (e) => {
+        e.preventDefault();
+        activeTab = "newest";
+        document.querySelector('[data-tab="newest"]').click();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>
