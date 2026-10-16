@@ -529,7 +529,7 @@
   <!-- Toast Container -->
   <div id="toast-container"></div>
 
-  <!-- Integrated Application Logic Script with Screenshot Seed Data -->
+  <!-- Integrated Application Logic Script with Multi-User Seeding -->
   <script type="module">
     import { createMockApi } from "./src/api.js";
     import { safeBrowserStorage } from "./src/storage.js";
@@ -538,7 +538,6 @@
     const storage = safeBrowserStorage();
     const api = createMockApi({ storage });
 
-    // Seed preset stories from case study screenshots
     const SCREENSHOT_STORIES = [
       { title: "Designing resilient front-end state with plain classes", author: "Wisdom Godwin", url: "https://example.com/state", username: "hacker" },
       { title: "A guide to event delegation in the DOM", author: "MDN", url: "https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener", username: "hacker" },
@@ -553,12 +552,23 @@
       const dbKey = "hos:db";
       if (!storage.getItem(dbKey)) {
         try {
-          await api.signup("hacker", "password", "Hacker");
-          const loginRes = await api.login("hacker", "password");
-          const token = loginRes.token;
+          const users = ["hacker", "scott", "fcc", "lokesh", "webdev"];
+          const tokens = {};
 
+          for (const u of users) {
+            try {
+              const res = await api.signup(u, "password", u.toUpperCase());
+              tokens[u] = res.token;
+            } catch {
+              const res = await api.login(u, "password");
+              tokens[u] = res.token;
+            }
+          }
+
+          // Assign stories to their respective owners
           for (const s of SCREENSHOT_STORIES) {
-            await api.addStory(token, s);
+            const token = tokens[s.username] || tokens["hacker"];
+            await api.addStory(token, { title: s.title, author: s.author, url: s.url });
           }
         } catch (e) {
           console.error("Seeding error:", e);
