@@ -3,6 +3,7 @@ export const memoryStorage = () => {
   const m = new Map();
   return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => void m.set(k, String(v)), removeItem: k => void m.delete(k) };
 };
+
 // Wraps window.localStorage; falls back to memory when storage is blocked.
 export const safeBrowserStorage = () => {
   const fallback = memoryStorage();

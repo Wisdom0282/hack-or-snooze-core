@@ -32,7 +32,7 @@ export class User {
   isFavorite(id) { return this.favoriteIds.has(id); }
   async toggleFavorite(id) {
     const on = !this.isFavorite(id);
-    await this.api.setFavorite(this.token, id, on); // mutate local state only after the server accepts
+    await this.api.setFavorite(this.token, id, on); // mutate local state only after the server accepts[cite: 6]
     on ? this.favoriteIds.add(id) : this.favoriteIds.delete(id); return on;
   }
 }
