@@ -18,4 +18,4 @@ Dependencies (api, storage, clock) are injected, so every layer is testable with
 4. **Opaque session tokens and PBKDF2 hashing.** An earlier prototype used a username-derived token and plaintext passwords. Both were replaced.
 
 ## Known limits
-Mock backend only: hashing runs client-side and is not a real security boundary. No rate limiting, token expiry or CSRF model. The UI layer is not yet split into modules or covered by browser tests.
+    Mock backend only: hashing runs client-side and is not a real security boundary. No rate limiting, token expiry or CSRF model. The UI layer is not yet split into modules or covered by browser tests.
